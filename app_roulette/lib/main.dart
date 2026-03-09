@@ -41,7 +41,7 @@ class WheelItem {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
 }
 
 class RoulettePage extends StatefulWidget {
-  const RoulettePage({Key? key}) : super(key: key);
+  const RoulettePage({super.key});
 
   @override
   State<RoulettePage> createState() => _RoulettePageState();
@@ -290,7 +290,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                                     setStateDialog(() {
                                       items.removeAt(index);
                                     });
-                                    this.setState(() {}); 
+                                    setState(() {}); 
                                     _saveData(); 
                                   },
                                   padding: EdgeInsets.zero,
@@ -368,7 +368,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                         subtitle: const Text("Saldrá dorado", style: TextStyle(fontSize: 12)),
                         secondary: Icon(Icons.star, color: isJackpotLocal ? Colors.amber : Colors.grey),
                         value: isJackpotLocal,
-                        activeColor: Colors.amber,
+                        activeThumbColor: Colors.amber,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                         onChanged: (val) {
                           setStateForm(() {
@@ -424,7 +424,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                         items[index].capability = newCap;
                       }
                     });
-                    this.setState(() {}); 
+                    setState(() {}); 
                     _saveData(); 
                     Navigator.pop(context);
                   },
@@ -601,7 +601,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
     String decimalPart = parts.length > 1 ? parts[1] : '00';
 
     RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    String Function(Match) mathFunc = (Match match) => '${match[1]}.';
+    String mathFunc(Match match) => '${match[1]}.';
     
     String formattedWhole = wholePart.replaceAllMapped(reg, mathFunc);
 
@@ -610,26 +610,29 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
   }
 
   // --- WIDGETS UI ---
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final wheelSize = min(size.width, size.height) * 0.85;
+@override
+Widget build(BuildContext context) {
+  final size = MediaQuery.of(context).size;
+  final wheelSize = min(size.width, size.height) * 0.85;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.center,
-                radius: 1.0,
-                colors: [Color(0xFF2C3E50), Color(0xFF000000)],
-                stops: [0.3, 1.0],
+  return Scaffold(
+    body: Stack(
+      children: [
+        // ESTE ES EL CONTAINER QUE CAMBIAMOS
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/background/background.png"),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black45, 
+                BlendMode.darken
               ),
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Column(
                     children: [
@@ -861,7 +864,7 @@ class ThousandsSeparatorInputFormatter extends TextInputFormatter {
 
   String _formatWithDots(String s) {
     RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    String Function(Match) mathFunc = (Match match) => '${match[1]}.';
+    String mathFunc(Match match) => '${match[1]}.';
     return s.replaceAllMapped(reg, mathFunc);
   }
 }
