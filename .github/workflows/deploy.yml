@@ -24,7 +24,7 @@ jobs:
       - name: 🐦 Instalar Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.41.4'
           channel: 'stable'
 
       - name: 📦 Obtener dependencias
