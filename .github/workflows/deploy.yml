@@ -1,4 +1,4 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Deploy Flutter Web a GitHub Pages
 
 on:
   push:
@@ -11,27 +11,30 @@ permissions:
   id-token: write
 
 jobs:
-  deploy_web_release:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app_roulette
 
     steps:
-      - name: Checkout source code
+      - name: 📥 Checkout del repositorio
         uses: actions/checkout@v4
 
-      - name: Set up Flutter SDK
+      - name: 🐦 Instalar Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
           channel: 'stable'
 
-      - name: Install project dependencies
+      - name: 📦 Obtener dependencias
         run: flutter pub get
 
-      - name: Build Flutter web release
-        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+      - name: 🌐 Build Flutter Web
+        run: flutter build web --release --base-href "/AppRuleta/"
 
-      - name: Publish artifact to GitHub Pages
+      - name: 🚀 Deploy a GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
+          publish_dir: ./app_roulette/build/web
