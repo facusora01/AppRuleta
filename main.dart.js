@@ -41738,7 +41738,7 @@ A.aeE.prototype={}
 A.dH.prototype={
 jx(){return A.au(["text",this.a,"isJackpot",this.b,"capability",this.c],t.N,t.z)}}
 A.KB.prototype={
-K(a){return new A.yX(B.NO,"Ruleta Pro",A.uh(B.ah,null,B.EF,"Roboto",null),!1,null)}}
+K(a){return new A.yX(B.NO,"PromoSpin",A.uh(B.ah,null,B.EF,"Roboto",null),!1,null)}}
 A.Ai.prototype={
 al(){return new A.EA(A.azd(null,!1,t.S),A.aFE(),A.c([],t.F3),null,null)}}
 A.EA.prototype={
