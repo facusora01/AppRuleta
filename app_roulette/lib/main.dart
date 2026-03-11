@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Ruleta Pro',
+      title: 'PromoSpin',
       theme: ThemeData(
         brightness: Brightness.dark,
         fontFamily: 'Roboto',
