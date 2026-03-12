@@ -51,21 +51,166 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         fontFamily: 'Roboto',
-        // Ya no dependemos tanto del DialogTheme porque usaremos Scaffold,
-        // pero lo dejamos por si acaso.
         dialogTheme: const DialogThemeData(
           backgroundColor: Color(0xFF2C3E50),
           titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
           contentTextStyle: TextStyle(color: Colors.white70),
         ),
       ),
-      home: const RoulettePage(),
+      home: const HomeScreen(),
     );
   }
 }
 
+// --- PANTALLA DE INICIO ---
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/background/background.png"),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken),
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo / Título
+              const Text(
+                "PromoSpin",
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFFFD700),
+                  letterSpacing: 2,
+                  shadows: [
+                    Shadow(color: Colors.black, blurRadius: 15, offset: Offset(0, 5))
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Seleccioná tu ruleta",
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 60),
+
+              // Botón Ruleta Normal
+              _WheelButton(
+                label: "RULETA NORMAL",
+                icon: Icons.casino,
+                color: const Color(0xFFFFD700),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RoulettePage(
+                      title: "¡PRUEBA TU SUERTE!",
+                      storageKey: "wheel_items_normal",
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Botón Ruleta Deluxe
+              _WheelButton(
+                label: "RULETA DELUXE",
+                icon: Icons.workspace_premium,
+                color: const Color(0xFF9B59B6),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RoulettePage(
+                      title: "✨ DELUXE ✨",
+                      storageKey: "wheel_items_deluxe",
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WheelButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _WheelButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 260,
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, color.withOpacity(0.7)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(50),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.5),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
+          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.black, size: 22),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- RULETA (ahora recibe title y storageKey) ---
 class RoulettePage extends StatefulWidget {
-  const RoulettePage({super.key});
+  final String title;
+  final String storageKey;
+
+  const RoulettePage({
+    super.key,
+    required this.title,
+    required this.storageKey,
+  });
 
   @override
   State<RoulettePage> createState() => _RoulettePageState();
@@ -95,7 +240,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
   // --- DATA LOAD/SAVE ---
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? itemsString = prefs.getString('wheel_items');
+    final String? itemsString = prefs.getString(widget.storageKey);
 
     if (itemsString != null) {
       List<dynamic> jsonList = jsonDecode(itemsString);
@@ -122,7 +267,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
   Future<void> _saveData() async {
     final prefs = await SharedPreferences.getInstance();
     String encodedData = jsonEncode(items.map((e) => e.toJson()).toList());
-    await prefs.setString('wheel_items', encodedData);
+    await prefs.setString(widget.storageKey, encodedData);
   }
 
   // --- GIRO ---
@@ -173,7 +318,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
     });
   }
 
-  // --- SETTINGS (ARREGLADO VISUAL) ---
+  // --- SETTINGS ---
   void _openSettings() {
     if (_isSpinning) return;
     final size = MediaQuery.of(context).size;
@@ -232,7 +377,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             leading: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min, // Evita overflow vertical en el icono
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 CircleAvatar(
                                   backgroundColor: item.isJackpot ? Colors.amber : Colors.grey.shade800,
@@ -347,7 +492,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                   children: [
                     TextField(
                       controller: controller,
-                      autofocus: false, // No teclado automático
+                      autofocus: false,
                       style: const TextStyle(fontSize: 18),
                       decoration: const InputDecoration(
                         labelText: "Nombre del Premio",
@@ -438,7 +583,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
     );
   }
 
-  // --- RESULTADO / CALCULADORA (SOLUCIÓN DEFINITIVA OVERFLOW) ---
+  // --- RESULTADO ---
   void _showResultDialog(int index) async {
     final item = items[index];
     bool isBadResult = item.text.contains(":(");
@@ -459,8 +604,6 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
 
     if (!mounted) return;
 
-    // USAMOS showDialog pero devolvemos un SCAFFOLD Transparente
-    // Esto es "magia" para el teclado: Scaffold gestiona el resize automáticamente.
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -473,12 +616,10 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return Scaffold(
-              backgroundColor: Colors.transparent, // Fondo transparente
-              // El body del Scaffold se achica cuando sube el teclado
+              backgroundColor: Colors.transparent,
               body: Center(
-                child: SingleChildScrollView( // Permite scroll si el espacio se achica mucho
+                child: SingleChildScrollView(
                   child: Container(
-                    // Margen para que no toque los bordes laterales
                     margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -609,36 +750,35 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
     return "$formattedWhole,$decimalPart"; 
   }
 
-  // --- WIDGETS UI ---
-@override
-Widget build(BuildContext context) {
-  final size = MediaQuery.of(context).size;
-  final wheelSize = min(size.width, size.height) * 0.85;
+  // --- UI ---
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final wheelSize = min(size.width, size.height) * 0.85;
 
-  return Scaffold(
-    body: Stack(
-      children: [
-        // ESTE ES EL CONTAINER QUE CAMBIAMOS
-        Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage("assets/background/background.png"),
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black45, 
-                BlendMode.darken
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/background/background.png"),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black45, 
+                  BlendMode.darken
+                ),
               ),
             ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Column(
                     children: [
-                      const Text(
-                        "¡PRUEBA TU SUERTE!",
-                        style: TextStyle(
+                      Text(
+                        widget.title,
+                        style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFFFFD700),
@@ -777,6 +917,24 @@ Widget build(BuildContext context) {
             ),
           ),
 
+          // Botón volver
+          Positioned(
+            top: 40,
+            left: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black45,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white70),
+                onPressed: () => Navigator.pop(context),
+                tooltip: "Volver",
+              ),
+            ),
+          ),
+
+          // Botón settings
           Positioned(
             top: 40,
             right: 20,
