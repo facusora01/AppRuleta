@@ -901,13 +901,14 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                           style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        Stack(
+                          alignment: Alignment.center,
                           children: [
                             _buildWheel(wheelSize),
-                            const SizedBox(width: 48),
-                            _buildSpinButton(),
+                            Positioned(
+                              right: -140,
+                              child: _buildSpinButton(),
+                            ),
                           ],
                         ),
                       ],
