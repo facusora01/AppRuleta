@@ -865,7 +865,7 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
     final size = MediaQuery.of(context).size;
     final bool isWide = size.width >= 700;
     final wheelSize = isWide
-        ? min(size.height * 0.80, size.width * 0.55)
+        ? min(size.height * 0.75, size.width * 0.60)
         : min(size.width, size.height) * 0.85;
 
     return Scaffold(
@@ -901,14 +901,13 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
                           style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
                         ),
                         const SizedBox(height: 24),
-                        Stack(
-                          alignment: Alignment.center,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             _buildWheel(wheelSize),
-                            Positioned(
-                              right: -140,
-                              child: _buildSpinButton(),
-                            ),
+                            const SizedBox(width: 40),
+                            _buildSpinButton(),
                           ],
                         ),
                       ],
