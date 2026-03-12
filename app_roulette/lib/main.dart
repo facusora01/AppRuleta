@@ -751,10 +751,122 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
   }
 
   // --- UI ---
+  Widget _buildSpinButton() {
+    return GestureDetector(
+      onTap: _isSpinning || items.length < 2 ? null : _spinWheel,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: _isSpinning
+              ? [Colors.grey, Colors.black]
+              : [const Color(0xFFFFD700), const Color(0xFFFFA500)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(50),
+          boxShadow: [
+            if (!_isSpinning)
+              BoxShadow(
+                color: const Color(0xFFFFA500).withOpacity(0.5),
+                blurRadius: 20,
+                offset: const Offset(0, 5),
+              ),
+          ],
+          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+        ),
+        child: Text(
+          _isSpinning ? 'GIRANDO...' : 'GIRAR\nAHORA',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: _isSpinning ? Colors.white54 : Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWheel(double wheelSize) {
+    return SizedBox(
+      height: wheelSize,
+      width: wheelSize,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: wheelSize,
+            height: wheelSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFD700), Color(0xFFB8860B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+          ),
+          Transform.rotate(
+            angle: _randomOffset,
+            child: Container(
+              margin: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: items.isEmpty
+                ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+                : items.length < 2
+                    ? const Center(child: Text("Agrega premios"))
+                    : FortuneWheel(
+                        selected: selected.stream,
+                        animateFirst: false,
+                        indicators: const <FortuneIndicator>[],
+                        physics: CircularPanPhysics(
+                          duration: const Duration(seconds: 1),
+                          curve: Curves.decelerate,
+                        ),
+                        onFling: () => _spinWheel(),
+                        curve: Curves.easeOutQuart,
+                        duration: const Duration(seconds: 6),
+                        rotationCount: 10,
+                        items: [
+                          for (var i = 0; i < items.length; i++)
+                            _buildFortuneItem(i),
+                        ],
+                      ),
+            ),
+          ),
+          const Positioned(
+            top: 0,
+            child: SizedBox(
+              height: 50,
+              width: 50,
+              child: TriangleIndicator(color: Color(0xFFE74C3C)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final wheelSize = min(size.width, size.height) * 0.85;
+    final bool isWide = size.width >= 700;
+    final wheelSize = isWide
+        ? min(size.height * 0.80, size.width * 0.55)
+        : min(size.width, size.height) * 0.85;
 
     return Scaffold(
       body: Stack(
@@ -764,156 +876,67 @@ class _RoulettePageState extends State<RoulettePage> with SingleTickerProviderSt
               image: DecorationImage(
                 image: AssetImage("assets/background/background.png"),
                 fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black45, 
-                  BlendMode.darken
-                ),
+                colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
               ),
             ),
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFFFFD700),
-                          letterSpacing: 1.2,
-                          shadows: [
-                            Shadow(color: Colors.black, blurRadius: 15, offset: Offset(0, 5))
+              child: isWide
+                  // ── LAYOUT WEB: título arriba, rueda + botón en Row ──
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFFFD700),
+                            letterSpacing: 1.2,
+                            shadows: [Shadow(color: Colors.black, blurRadius: 15, offset: Offset(0, 5))],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Gira la ruleta y gana premios",
+                          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _buildWheel(wheelSize),
+                            const SizedBox(width: 48),
+                            _buildSpinButton(),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        "Gira la ruleta y gana premios",
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 30),
-
-                  SizedBox(
-                    height: wheelSize,
-                    width: wheelSize,
-                    child: Stack(
-                      alignment: Alignment.center,
+                      ],
+                    )
+                  // ── LAYOUT MÓVIL: todo en Column ──
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          width: wheelSize,
-                          height: wheelSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFFFD700), Color(0xFFB8860B)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
+                        Text(
+                          widget.title,
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFFFD700),
+                            letterSpacing: 1.2,
+                            shadows: [Shadow(color: Colors.black, blurRadius: 15, offset: Offset(0, 5))],
                           ),
                         ),
-                        
-                        Transform.rotate(
-                          angle: _randomOffset,
-                          child: Container(
-                            margin: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.black, width: 2),
-                            ),
-                            child: items.isEmpty 
-                            ? const Center(child: CircularProgressIndicator(color: Colors.amber))
-                            : items.length < 2
-                                ? const Center(child: Text("Agrega premios"))
-                                : FortuneWheel(
-                                    selected: selected.stream,
-                                    animateFirst: false,
-                                    indicators: const <FortuneIndicator>[], 
-                                    physics: CircularPanPhysics(
-                                      duration: const Duration(seconds: 1),
-                                      curve: Curves.decelerate,
-                                    ),
-                                    onFling: () {
-                                      _spinWheel();
-                                    },
-                                    curve: Curves.easeOutQuart,
-                                    duration: const Duration(seconds: 6), 
-                                    rotationCount: 10,
-                                    items: [
-                                      for (var i = 0; i < items.length; i++)
-                                        _buildFortuneItem(i),
-                                    ],
-                                  ),
-                          ),
+                        const SizedBox(height: 5),
+                        Text(
+                          "Gira la ruleta y gana premios",
+                          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
                         ),
-
-                        const Positioned(
-                          top: 0,
-                          child: SizedBox(
-                            height: 50,
-                            width: 50,
-                            child: TriangleIndicator(
-                              color: Color(0xFFE74C3C),
-                            ),
-                          ),
-                        ),
+                        const SizedBox(height: 30),
+                        _buildWheel(wheelSize),
+                        const SizedBox(height: 40),
+                        _buildSpinButton(),
                       ],
                     ),
-                  ),
-
-                  const SizedBox(height: 50),
-
-                  GestureDetector(
-                    onTap: _isSpinning || items.length < 2 ? null : _spinWheel,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: _isSpinning 
-                            ? [Colors.grey, Colors.black] 
-                            : [const Color(0xFFFFD700), const Color(0xFFFFA500)],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                        borderRadius: BorderRadius.circular(50),
-                        boxShadow: [
-                          if (!_isSpinning)
-                            BoxShadow(
-                              color: const Color(0xFFFFA500).withOpacity(0.5),
-                              blurRadius: 20,
-                              offset: const Offset(0, 5),
-                            ),
-                        ],
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                      ),
-                      child: Text(
-                        _isSpinning ? 'GIRANDO...' : 'GIRAR AHORA',
-                        style: TextStyle(
-                          color: _isSpinning ? Colors.white54 : Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
 
