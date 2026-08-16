@@ -130,7 +130,7 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const RoulettePage(
-                      title: "✨ DELUXE ✨",
+                      title: "DELUXE",
                       storageKey: "wheel_items_deluxe",
                     ),
                   ),
